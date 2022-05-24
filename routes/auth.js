@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'aloksec$et';
 
-// POST Endpoint to /api/auth/createnewuser
+// ROUTE 1 : POST Endpoint to /api/auth/createnewuser
 router.post('/createnewuser',
     [
         // Validating using express validator 
@@ -61,6 +61,50 @@ router.post('/createnewuser',
     })
 
 
+// ROUTE 2 :  Authentication of login of a user "/api/auth/login"
+router.post('/login',
+    [
+        // Validating using express validator 
+        body('email', 'Enter a valid email').isEmail(),
+        body('password', 'Password cannot be blank').exists()
+    ],
+    async (req, res) => {
+
+        // If there are errors return error with its message
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        // Destructuring the input given by user
+        const { email, password } = req.body;
+        try {
+            let user = await User.findOne({ email })
+            if (!user) {
+                return res.status(400).json({ error: "Please try to login with correct credential" })
+            }
+            let compPass = await bcrypt.compare(password, user.password);
+            if (!compPass) {
+                return res.status(400).json({ error: "Please try to login with correct credential" })
+            }
+            // Creating auth token
+            const data = {
+                user: {
+                    id: user.id
+                }
+            }
+            const authToken = jwt.sign(data, JWT_SECRET);
+
+            // Sending response that user has been saved successfully 
+            res.json({ authToken })
+
+        } catch (error) {
+            res.status(500).json({ message: error.message })
+        }
+    })
+
+
 
     
+
 module.exports = router
