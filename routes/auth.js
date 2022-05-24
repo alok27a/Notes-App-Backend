@@ -7,6 +7,8 @@ const bcrypt = require('bcryptjs');
 // JSON Web Token used for verifying a user at every stage 
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'aloksec$et';
+const fetchuser = require('../middleware/fetchUser')
+
 
 // ROUTE 1 : POST Endpoint to /api/auth/createnewuser
 router.post('/createnewuser',
@@ -103,8 +105,17 @@ router.post('/login',
         }
     })
 
+// ROUTE 3 : TO get all the details of a particular user
+router.post('/getuser', fetchuser, async (req, res) => {
+        try {
+            let userId = req.user.id
+            const user = await User.findById(userId).select("-password")
+            res.send(user)
+        } catch (error) {
+            console.log(error.message)
+            res.status(400).send("Internal error")
+        }
+    })
 
-
-    
 
 module.exports = router
