@@ -70,10 +70,31 @@ router.put('/updatenote/:id', fetchuser,
             return res.status(401).send("Unauthorised access");
         }
 
-        note = await Note.findByIdAndUpdate(req.params.id, {$set: newNote},{new: true})
-        res.json({note})
+        note = await Note.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true })
+        res.json({ note })
 
     })
+
+// ROUTE 3 : Delete  all notes using delete 
+router.delete('/deletenote/:id', fetchuser,
+    async (req, res) => {
+    
+        //  Find the note and delete it 
+        // But first we need to verify whether its the same user note or not
+        let note = await Note.findById(req.params.id)
+        if (!note) {
+            return res.status(404).send("Not found");
+        }
+
+        if (note.user.toString() !== req.user.id) {
+            return res.status(401).send("Unauthorised access");
+        }
+
+        note = await Note.findByIdAndDelete(req.params.id)
+        res.json({ "message":"Success note has been deleted" })
+
+    })
+
 
 
 module.exports = router
